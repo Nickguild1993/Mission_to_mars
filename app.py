@@ -10,8 +10,7 @@ app = Flask(__name__)
 
 # Need to tell Python how to connect to Mongo use PyMongo. 
 
-# Use flask_pymongo to set up mongo connection.
-
+# Use flask_pymongo to set up mongo connection
 app.config["MONGO_URI"] = "mongodb://localhost:27017/mars_app"
 mongo = PyMongo(app)
 
@@ -34,8 +33,8 @@ mongo = PyMongo(app)
 
 @app.route("/")
 def index():
-    mars = mongo.db.mars.find_one()
-    return render_template("index.html", mars = mars)
+   mars = mongo.db.mars.find_one()
+   return render_template("index.html", mars=mars)
 
 # This route: @app.route("/")   tells Flask what to display when we're looking at the 
 # home page, index.html(index.html is the default HTML file that we'll use to display
@@ -64,10 +63,10 @@ def index():
 
 @app.route("/scrape")
 def scrape():
-    mars = mongo.db.mars
-    mars_data = scraping.scrape_all()
-    mars.update({}, mars_data, upsert=True)
-    return "Scraping Successful!"
+   mars = mongo.db.mars
+   mars_data = scraping.scrape_all()
+   mars.update({}, mars_data, upsert=True)
+   return "Scraping Successful!"
 
 # What the above ROUTE is doing.
 
@@ -86,7 +85,7 @@ def scrape():
 # Now that we've gathered new data (via scraping) we need to update the database using: .update() 
 #                     Syntax for .update() -> .update(query_parameter, data, options)
 
-# We're inserting data, so wfirst we need to add an empty JSON object -> {} in place of the "query_parameter".
+# We're inserting data, so first we need to add an empty JSON object -> {} in place of the "query_parameter".
 
 # Next, we'll use the data we have stored in * mars_data * in place of "data".
 
@@ -100,4 +99,4 @@ def scrape():
 # Now, the final bit of code we need to add -> tell Flask to run it.
 
 if __name__ == "__main__":
-    app.run()
+   app.run()
