@@ -3,6 +3,7 @@ from splinter import Browser
 from bs4 import BeautifulSoup as soup
 import pandas as pd
 import datetime as dt
+import time
 
 
 def scrape_all():
@@ -18,7 +19,7 @@ def scrape_all():
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
         "last_modified": dt.datetime.now(),
-        "image_titles_urls": hemisphere_image_urls
+        "hemispheres": hemisphere(browser)
     }
 
     # Stop webdriver and return data
@@ -101,49 +102,40 @@ def mars_facts():
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
 
-def mars_hemi(browser):
-    # Visit URL
-    url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
-    browser.visit(url)
-
-    html = browser.html
-    hemi_soup = soup(html,"lxml")
+def hemisphere(browser):
+    # Create an empty dict to hold the hemisphere links
     hemispheres = {}
+    
+    # Lead url to append to, extract
+    url_hemi = "https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars"
+    browser.visit(url_hemi)
+    time.sleep(5)
+    hemi_soup = soup(browser.html, "html.parser")
+    headers = []
+    titles = hemi_soup.find_all("h3")
+    time.sleep(5)
 
-    try:
-        lead_url = "https://astrogeology.usgs.gov"
-        for url in hemi_soup.find_all("a", class_="itemLink product-item"):
-            url = url.get("href")
-            url = lead_url + url
-            if url not in hemispheres.keys():
-                hemispheres[url]=1
-                print(url)
-    except AttributeError:
-        return None
+    for title in titles:
+        headers.append(title.text)
+    
+    images = []
+    count = 0
+    for thumb in headers:
+        browser.find_by_css("img.thumb")[count].click()
+        images.append(browser.find_by_text("Sample")["href"])
+        browser.back()
+        count = count+1
+    
+    hemisphere_image_urls = [] 
+    counter = 0
+    for item in images:
+        hemisphere_image_urls.append({"title": headers[counter],"img_url":images[counter]})
+        counter = counter+1
+    browser.back()
+    time.sleep(1)
 
-    return hemispheres
-    hemispheres = list(hemispheres.keys())
+    return hemisphere_image_urls
 
-# get length of list
-length = len(hemispheres)
-
-# 2. Create a list to hold the images and titles.
-hemisphere_image_urls = []
-
-# 3. Write code to retrieve the image urls and titles for each hemisphere.
-for x in range(length):
-    browser.visit(hemispheres[x])
-    html= browser.html
-    html_soup = soup(html, "lxml")
-    image_link = html_soup.find("div", class_="wide-image-wrapper")
-    image_link = image_link.find_all("a")[0].get("href")
-    title = html_soup.title.get_text()
-#   append the empty list
-    hemisphere_image_urls.append({"img_url": image_link, "title": title})
-#   loop the iterator
-    x += 1
-#   print
-#   print(title, image_link)
 
 if __name__ == "__main__":
 
